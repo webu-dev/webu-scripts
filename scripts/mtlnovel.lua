@@ -59,25 +59,26 @@ function parseNovel(url)
 
     local chapterLink = documentNovel:selectFirst('a.view-all'):selectFirst('a[href]'):attr('abs:href')
     local documentChapters = lib:getDocument(chapterLink)
-	local chaptersIndex = documentChapters:selectFirst('div.ch-list'):select('p')
+    local chaptersDiv = documentChapters:selectFirst('div.ch-list')
+    
+    local list = lib:createWebsiteChapterList()
+    if(chaptersDiv ~= nil) then
+        local chaptersIndex = chaptersDiv:select('p')
+        local chaptersCount = chaptersIndex:size()
 
-	local list = lib:createWebsiteChapterList()
-	local chaptersCount = chaptersIndex:size()
-
-	if(chaptersCount > 0) then
-		for i=0,chaptersCount-1,1 do
-            local chapterLinks = chaptersIndex:get(i):select('a')
-            local clSize = chapterLinks:size()
-            for j=0,clSize-1,1 do
-                local link = chapterLinks:get(j):selectFirst('a[href]'):attr('abs:href')
-                local title = chapterLinks:get(j):text()
-                lib:addWebsiteChaptersToList(list, link, title, '')
+        if(chaptersCount > 0) then
+            for i=0,chaptersCount-1,1 do
+                local chapterLinks = chaptersIndex:get(i):select('a')
+                local clSize = chapterLinks:size()
+                for j=0,clSize-1,1 do
+                    local link = chapterLinks:get(j):selectFirst('a[href]'):attr('abs:href')
+                    local title = chapterLinks:get(j):text()
+                    lib:addWebsiteChaptersToList(list, link, title, '')
+                end
             end
-		end
-	end
-
-    lib:reverseList(list)
+        end
+        lib:reverseList(list)
+    end
 	websiteNovel:setChapters(list)
-
 	return websiteNovel
 end
