@@ -106,7 +106,7 @@
             "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/scripts/panda-novel.lua",
             "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/icons/pandanovelcom.png",
             "lang": "en",
-            "versionCode": 2,
+            "versionCode": 3,
             "versionLib": 1,
             "hash": ""
         },
