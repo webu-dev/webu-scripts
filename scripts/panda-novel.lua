@@ -27,7 +27,8 @@ function search(searchQuery)
 end
 
 function parseNovel(url)
-	local doc = lib:getDocument(url)
+	local request = lib:getRequestBuilder():url(url):addHeader("referer", "https://www.panda-novel.com"):build()
+	local doc = lib:executeRequest(request, 'https://www.panda-novel.com')
 	local novel = lib:createWebsiteNovel()
 	local id = url:match('(%d+)$')
 	local api = 'https://www.panda-novel.com/api/book/chapters/' .. id
