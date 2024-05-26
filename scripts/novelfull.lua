@@ -18,7 +18,7 @@ function search(searchQuery)
 		for i=0,searchCount-1,1 do
 			local link = documentSearchResult:get(i):selectFirst('a[href]'):attr('abs:href')
 			local title = documentSearchResult:get(i):selectFirst('a[href]'):attr('title')
-			local imgSrc = documentSearchResult:get(i):selectFirst('img'):attr('abs:src')
+			local imgSrc = documentSearchResult:get(i):select('img'):attr('abs:src')
 			lib:addWebsiteSearchToList(list, link, title, imgSrc)
 		end
 	end
@@ -27,12 +27,12 @@ function search(searchQuery)
 end
 
 function parseNovel(url)
-	--get info from novels page
+	--[[get info from novels page--]]
 	local documentNovel = lib:getDocument(url):select('div#truyen')
 	local websiteNovel = lib:createWebsiteNovel()
 
 	websiteNovel:setTitle(documentNovel:select('div.desc'):first():text())
-	websiteNovel:setImageUrl(documentNovel:select('div.book'):select('img'):first():absUrl('src'))
+	websiteNovel:setImageUrl(documentNovel:select('div.book'):select('img'):attr('abs:src'))
 	websiteNovel:setDescription(documentNovel:select('div.desc-text'):first():text())
 
 	local docAuthor = documentNovel:select('div.info'):select('div'):get(1)
@@ -42,7 +42,7 @@ function parseNovel(url)
 	local docGenres = documentNovel:select('div.info'):select('div'):get(3)
 	docGenres:select('h3'):remove()
 	websiteNovel:setGenres(documentNovel:select('div.info'):select('div'):get(3):text())
-	--no tags
+	--[[no tags--]]
 	websiteNovel:setTags('')
 
 	local docStatus = documentNovel:select('div.info'):select('div'):get(5)

@@ -8,7 +8,7 @@ function getChapterText(url)
 end
 
 function search(searchQuery)
-    local url = 'https://lightnovelreader.org/search/autocomplete?dataType=json&query=' .. searchQuery
+    local url = 'https://rln.app/search/autocomplete?dataType=json&query=' .. searchQuery
     local document = lib:getDocument(url)
 
     local tree = lib:toJsonTree(document:text())
