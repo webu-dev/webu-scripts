@@ -31,7 +31,7 @@ function search(searchQuery)
 		for i=0,searchCount-1,1 do
 			local link = documentSearchResult:get(i):selectFirst('a[href]'):attr('abs:href')
 			local title = documentSearchResult:get(i):selectFirst('a[href]'):attr('title')
-			local imgSrc = documentSearchResult:get(i):selectFirst('img'):absUrl('data-src')
+			local imgSrc = documentSearchResult:get(i):selectFirst('img'):absUrl('src')
 			lib:addWebsiteSearchToList(list, link, title, imgSrc)
 		end
 	end
@@ -45,7 +45,7 @@ function parseNovel(url)
 	local websiteNovel = lib:createWebsiteNovel()
 
 	websiteNovel:setTitle(documentNovel:selectFirst(novelTitleElement):text())
-	websiteNovel:setImageUrl(documentNovel:selectFirst(novelImageUrlElement):selectFirst('img'):absUrl('data-src'))
+	websiteNovel:setImageUrl(documentNovel:selectFirst(novelImageUrlElement):selectFirst('img'):absUrl('src'))
 	websiteNovel:setDescription(documentNovel:selectFirst(novelDescriptionElement):text())
 	websiteNovel:setAuthor(documentNovel:selectFirst(novelAuthorElement):text())
 	websiteNovel:setGenres(documentNovel:selectFirst(novelGenresElement):text())
