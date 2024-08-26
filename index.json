@@ -96,7 +96,7 @@
             "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/panda-novel.lua",
             "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/pandanovelcom.png",
             "lang": "en",
-            "versionCode": 3,
+            "versionCode": 4,
             "versionLib": 1,
             "hash": ""
         },

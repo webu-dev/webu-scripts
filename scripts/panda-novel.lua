@@ -9,18 +9,28 @@ end
 
 function search(searchQuery)
     local query = searchQuery:gsub('%s', '%%20')
-    local url = 'https://www.panda-novel.com/search/' .. query
-    local doc = lib:getDocument(url)
-    local res = doc:select('li.novel-li')
+	local url = 'https://www.panda-novel.com/api/search/' .. query
+	local request = lib:getRequestBuilder():url(url):addHeader("referer", 'https://www.panda-novel.com/presearch'):build()
+    local response = lib:executeRequest(request, 'https://www.panda-novel.com'):text()
+	local tree = lib:toJsonTree(response)
+	local data = tree:getAsJsonObject('data')
+	local array = data:getAsJsonArray("list")
 
-    local list = lib:createWebsiteSearchList()
-	local size = res:size()
+	local list = lib:createWebsiteSearchList()
+	local size = array:size()
+
 	if(size > 0) then
 		for i=0,size-1,1 do
-			local link = res:get(i):selectFirst('a[href]'):attr('abs:href')
-			local title = res:get(i):selectFirst('div.novel-desc'):child(0):text()
-			local imgSrc = res:get(i):selectFirst('div.novel-cover'):child(0):attr('v-lazy:background-image'):gsub('\'', '')
-			lib:addWebsiteSearchToList(list, link, title, imgSrc)
+			local element = array:get(i):getAsJsonObject()
+			local link2 = element:get("bookUrl")
+			local title2 = element:get("name")
+			local imgSrc2 = element:get("pic")
+
+			local link = lib:replaceString(link2, '"', '')
+            local title = lib:replaceString(title2, '"', '')
+            local imgSrc = lib:replaceString(imgSrc2, '"', '')
+
+			lib:addWebsiteSearchToList(list, 'https://www.panda-novel.com' .. link, title, imgSrc)
 		end
 	end
     return list
