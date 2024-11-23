@@ -48,8 +48,12 @@ function parseNovel(url)
 	websiteNovel:setDescription(documentNovel:selectFirst(novelDescriptionElement):text())
 	websiteNovel:setAuthor(documentNovel:selectFirst(novelAuthorElement):text())
 	websiteNovel:setGenres(documentNovel:selectFirst(novelGenresElement):text())
-	websiteNovel:setTags(documentNovel:selectFirst(novelTagsElement):text())
 	websiteNovel:setStatus(documentNovel:selectFirst(novelStatusElement):select('div.summary-content'):last():text())
+
+	local tags = documentNovel:selectFirst(novelTagsElement)
+	if(tags ~= nil) then
+		websiteNovel:setTags(tags:text())
+	end
 
 	--[[get chapters list from ajax request]]
 	local documentChapters = lib:postDocument(url .. ajaxChapterRelativeUrl)
