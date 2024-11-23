@@ -109,6 +109,16 @@
             "versionCode": 2,
             "versionLib": 1,
             "hash": ""
+        },
+        {
+            "name": "NewNovel.org",
+            "fileName": "newnovelorg.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/newnovelorg.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/newnovelorg.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
         }
     ]
 }
