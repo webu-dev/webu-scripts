@@ -45,12 +45,16 @@ function parseNovel(url)
 	websiteNovel:setTitle(documentNovel:selectFirst(novelTitleElement):text())
 	websiteNovel:setImageUrl(documentNovel:selectFirst(novelImageUrlElement):selectFirst('img'):absUrl('data-src'))
 	websiteNovel:setDescription(documentNovel:selectFirst(novelDescriptionElement):text())
-	websiteNovel:setAuthor(documentNovel:selectFirst(novelAuthorElement):text())
 	websiteNovel:setGenres(documentNovel:selectFirst(novelGenresElement):text())
 	--this site does not have tags
 	--websiteNovel:setTags(documentNovel:selectFirst(novelTagsElement):text())
 	websiteNovel:setTags('')
 	websiteNovel:setStatus(documentNovel:selectFirst(novelStatusElement):select('div.summary-content'):last():text())
+
+	local author = documentNovel:selectFirst(novelAuthorElement)
+	if(author ~= nil) then
+		websiteNovel:setAuthor(author:text())
+	end
 
 	--get chapters list from ajax request
 	local documentChapters = lib:postDocument(url .. ajaxChapterRelativeUrl)

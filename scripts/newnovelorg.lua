@@ -46,9 +46,13 @@ function parseNovel(url)
 	websiteNovel:setTitle(documentNovel:selectFirst(novelTitleElement):text())
 	websiteNovel:setImageUrl(documentNovel:selectFirst(novelImageUrlElement):selectFirst('img'):absUrl('src'))
 	websiteNovel:setDescription(documentNovel:selectFirst(novelDescriptionElement):text())
-	websiteNovel:setAuthor(documentNovel:selectFirst(novelAuthorElement):text())
 	websiteNovel:setGenres(documentNovel:selectFirst(novelGenresElement):text())
 	websiteNovel:setStatus(documentNovel:selectFirst(novelStatusElement):select('div.summary-content'):last():text())
+
+	local author = documentNovel:selectFirst(novelAuthorElement)
+	if(author ~= nil) then
+		websiteNovel:setAuthor(author:text())
+	end
 
 	local tags = documentNovel:selectFirst(novelTagsElement)
 	if(tags ~= nil) then
