@@ -1,12 +1,62 @@
 {
     "extensions": [
         {
-            "name": "All Novel Full",
-            "fileName": "allnovelfull.lua",
-            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/allnovelfull.lua",
-            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/allnovelfullcom.jpg",
+            "name": "MtlNovel",
+            "fileName": "mtlnovel.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/mtlnovel.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/mtlnovelcom.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "LightNovelPub",
+            "fileName": "lightnovelpub.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/lightnovelpub.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/lightnovelpubcom.png",
             "lang": "en",
             "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "NovelFull",
+            "fileName": "novelfull.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/novelfull.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/novelfullcom.png",
+            "lang": "en",
+            "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "BoxNovel",
+            "fileName": "boxnovel.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/boxnovel.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/boxnovelcom.png",
+            "lang": "en",
+            "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "ReadNovelFull",
+            "fileName": "readnovelfull.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/readnovelfull.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/readnovelfullcom.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "ZinNovel",
+            "fileName": "zinnovel.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/zinnovel.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/zinnovelcom.jpg",
+            "lang": "en",
+            "versionCode": 1,
             "versionLib": 1,
             "hash": ""
         },
@@ -21,40 +71,50 @@
             "hash": ""
         },
         {
-            "name": "Light Novel Pub",
-            "fileName": "lightnovelpub.lua",
-            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/lightnovelpub.lua",
-            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/lightnovelpubcom.png",
-            "lang": "en",
-            "versionCode": 2,
-            "versionLib": 1,
-            "hash": ""
-        },
-        {
-            "name": "MTLNovel",
-            "fileName": "mtlnovel.lua",
-            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/mtlnovel.lua",
-            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/mtlnovelcom.png",
+            "name": "VipNovel",
+            "fileName": "vipnovel.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/vipnovel.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/vipnovelcom.png",
             "lang": "en",
             "versionCode": 1,
             "versionLib": 1,
             "hash": ""
         },
         {
-            "name": "Novel Full",
-            "fileName": "novelfull.lua",
-            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/novelfull.lua",
-            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/novelfullcom.png",
+            "name": "All Novel Full",
+            "fileName": "allnovelfull.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/allnovelfull.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/allnovelfullcom.jpg",
             "lang": "en",
             "versionCode": 2,
             "versionLib": 1,
             "hash": ""
         },
         {
-            "name": "Read Novel Full",
-            "fileName": "readnovelfull.lua",
-            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/readnovelfull.lua",
-            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/readnovelfullcom.png",
+            "name": "Panda Novel",
+            "fileName": "panda-novel.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/panda-novel.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/pandanovelcom.png",
+            "lang": "en",
+            "versionCode": 4,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "readlightnovel.meme",
+            "fileName": "readlightnovelme.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/readlightnovelme.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/readlightnovelme.png",
+            "lang": "en",
+            "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "NewNovel.org",
+            "fileName": "newnovelorg.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/newnovelorg.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/newnovelorg.png",
             "lang": "en",
             "versionCode": 1,
             "versionLib": 1,
