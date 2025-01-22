@@ -51,6 +51,16 @@
             "hash": ""
         },
         {
+            "name": "NOVGO",
+            "fileName": "novgoco.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/novgoco.lua",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/novgoco.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
             "name": "Read Novel Full",
             "fileName": "readnovelfull.lua",
             "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/readnovelfull.lua",
