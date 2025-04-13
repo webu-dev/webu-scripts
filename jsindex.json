@@ -69,6 +69,16 @@
             "versionCode": 1,
             "versionLib": 1,
             "hash": ""
+        },
+        {
+            "name": "Novel Bin",
+            "fileName": "novelbinme.lua",
+            "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/scripts/novelbinme.lua",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/icons/novelbinme.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
         }
     ]
 }
