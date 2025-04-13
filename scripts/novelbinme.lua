@@ -52,7 +52,7 @@ function parseNovel(url)
 	local list = lib:createWebsiteChapterList()
 
 	--[[get chapters list from ajax request]]
-    local dataId = documentNovel:select("a.btn-follow"):first():attr("data-id")
+    local dataId = documentNovel:select("div#rating"):first():attr("data-novel-id")
 	local result = lib:getDocument("https://novelbin.me/ajax/chapter-archive?novelId=" .. dataId)
 	local chaptersIndex = result:select("li")
 
