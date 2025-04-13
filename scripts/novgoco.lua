@@ -61,7 +61,7 @@ function parseNovel(url)
     local request = lib:getRequestBuilder():url(url .. ajaxChapterRelativeUrl):addHeader("accept", "*/*"):addHeader("content-length", "0")
 	:addHeader("dnt", "1"):addHeader("origin", "https://novgo.co"):addHeader("referer", url)
 	:addHeader("x-requested-with", "XMLHttpRequest"):post(lib:getEmptyBody()):build()
-	local result = lib:executeRequest(request, 'https://www.lightnovelpub.com')
+	local result = lib:executeRequest(request, 'https://www.novgo.co')
 	local chaptersIndex = result:select(chapterListElement)
 
 	local list = lib:createWebsiteChapterList()
