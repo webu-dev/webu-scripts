@@ -51,9 +51,9 @@
             "hash": ""
         },
         {
-            "name": "NOVGO",
-            "fileName": "novgoco.lua",
-            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/novgoco.lua",
+            "name": "Nov Love",
+            "fileName": "novlovecom.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/novlovecom.lua",
             "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/novgoco.png",
             "lang": "en",
             "versionCode": 2,
