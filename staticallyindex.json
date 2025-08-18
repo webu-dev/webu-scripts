@@ -79,6 +79,16 @@
             "versionCode": 1,
             "versionLib": 1,
             "hash": ""
+        },
+        {
+            "name": "Novel Fire",
+            "fileName": "novelfirenet.lua",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/master/scripts/novelfirenet.lua",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/master/icons/novelfirenet.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
         }
     ]
 }
