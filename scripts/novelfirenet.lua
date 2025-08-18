@@ -35,8 +35,28 @@ function parseNovel(url)
 	novel:setImageUrl(doc:selectFirst('div.fixed-img'):selectFirst('img'):absUrl("data-src"))
 	novel:setDescription(doc:selectFirst("div.summary"):select("p"):text())
 	novel:setAuthor(doc:selectFirst('div.main-head'):selectFirst('div.author'):select('a[title]'):attr('title'))
-	novel:setGenres(doc:selectFirst('div.categories'):select("li"):eachText():toString())
 	novel:setStatus(doc:selectFirst('div.header-stats'):children():last():text())
+
+	local genreList = doc:selectFirst('div.categories'):select("li")
+	local genreSize = genreList:size()
+	local genreTable = {}
+	for indexGenre=0, genreSize-1,1 do
+		table.insert(genreTable, genreList:get(indexGenre):text())
+	end
+
+	novel:setGenres(table.concat(genreTable, ', '))
+
+	local tagContent = doc:selectFirst('ul.content')
+	if(tagContent ~= nil) then
+		local tagList = tagContent:select("li")
+		local tagSize = tagList:size()
+		local tagTable = {}
+		for indexTag=0, tagSize-1,1 do
+			table.insert(tagTable, tagList:get(indexTag):text())
+		end
+	
+		novel:setTags(table.concat(tagTable, ', '))
+	end
 
 	local requestChapters = lib:getRequestBuilder():url(url .. '/chapters'):addHeader("referer", "https://novelfire.net/"):build()
 	local resultChapters = lib:executeRequest(requestChapters, 'https://novelfire.net/')
