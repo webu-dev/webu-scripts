@@ -21,16 +21,6 @@
             "hash": ""
         },
         {
-            "name": "Light Novel Pub",
-            "fileName": "lightnovelpub.lua",
-            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/master/scripts/lightnovelpub.lua",
-            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/master/icons/lightnovelpubcom.png",
-            "lang": "en",
-            "versionCode": 2,
-            "versionLib": 1,
-            "hash": ""
-        },
-        {
             "name": "MTLNovel",
             "fileName": "mtlnovel.lua",
             "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/master/scripts/mtlnovel.lua",
