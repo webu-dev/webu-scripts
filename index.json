@@ -21,16 +21,6 @@
             "hash": ""
         },
         {
-            "name": "MTLNovel",
-            "fileName": "mtlnovel.lua",
-            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/mtlnovel.lua",
-            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/icons/mtlnovelcom.png",
-            "lang": "en",
-            "versionCode": 1,
-            "versionLib": 1,
-            "hash": ""
-        },
-        {
             "name": "Novel Full",
             "fileName": "novelfull.lua",
             "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/master/scripts/novelfull.lua",
