@@ -9,16 +9,16 @@ function search(searchQuery)
     local query = searchQuery:gsub('%s', '%%20')
 	local url = 'https://novelfire.net/search?keyword=' .. query
 	local request = lib:getRequestBuilder():url(url):addHeader("referer", 'https://novelfire.net/search'):build()
-    local documentSearchResult = lib:executeRequest(request, 'novelfire.net'):select("li.novel-item")
+    local documentSearchResult = lib:executeRequest(request, 'novelfire.net'):select('li.novel-item')
 
 	local list = lib:createWebsiteSearchList()
 	local size = documentSearchResult:size()
 
 	if(size > 0) then
 		for i=0,size-1,1 do
-			local link = documentSearchResult:get(i):selectFirst('a[href]'):attr('abs:href')
+			local link = 'https://novelfire.net' .. documentSearchResult:get(i):selectFirst('a[href]'):attr('href')
 			local title = documentSearchResult:get(i):selectFirst('a[title]'):attr('title')
-			local imgSrc = documentSearchResult:get(i):selectFirst('img'):absUrl('src')
+			local imgSrc = 'https://novelfire.net' .. documentSearchResult:get(i):selectFirst('img'):attr('src')
 			lib:addWebsiteSearchToList(list, link, title, imgSrc)
 		end
 	end
@@ -32,12 +32,12 @@ function parseNovel(url)
 	local novel = lib:createWebsiteNovel()
 
 	novel:setTitle(doc:selectFirst('div.main-head'):selectFirst('.novel-title'):text())
-	novel:setImageUrl(doc:selectFirst('div.fixed-img'):selectFirst('img'):absUrl("data-src"))
-	novel:setDescription(doc:selectFirst("div.summary"):select("p"):text())
+	novel:setImageUrl(doc:selectFirst('div.fixed-img'):selectFirst('img'):attr('src'))
+	novel:setDescription(doc:selectFirst('div.summary'):text():gsub(' Show More', ''))
 	novel:setAuthor(doc:selectFirst('div.main-head'):selectFirst('div.author'):select('a[title]'):attr('title'))
 	novel:setStatus(doc:selectFirst('div.header-stats'):children():last():text())
 
-	local genreList = doc:selectFirst('div.categories'):select("li")
+	local genreList = doc:selectFirst('div.categories'):select('li')
 	local genreSize = genreList:size()
 	local genreTable = {}
 	for indexGenre=0, genreSize-1,1 do
@@ -48,7 +48,7 @@ function parseNovel(url)
 
 	local tagContent = doc:selectFirst('ul.content')
 	if(tagContent ~= nil) then
-		local tagList = tagContent:select("li")
+		local tagList = tagContent:select('li')
 		local tagSize = tagList:size()
 		local tagTable = {}
 		for indexTag=0, tagSize-1,1 do
@@ -74,7 +74,7 @@ function parseNovel(url)
 		end
 
 		local nextPage = ''
-		local nextPageingElement = resultChapters:select('ul.pagination'):select("li"):last()
+		local nextPageingElement = resultChapters:select('ul.pagination'):select('li'):last()
 
 		if nextPageingElement == nil then
 
