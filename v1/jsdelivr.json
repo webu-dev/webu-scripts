@@ -1,0 +1,74 @@
+{
+    "extensions": [
+        {
+            "name": "All Novel Full",
+            "fileName": "allnovelfull.lua",
+            "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/v1/lua/allnovelfull.lua",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/icons/allnovelfullcom.jpg",
+            "lang": "en",
+            "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "LightNovelHeaven",
+            "fileName": "lightnovelheaven.lua",
+            "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/v1/lua/lightnovelheaven.lua",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/icons/lightnovelheavencom.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "Novel Full",
+            "fileName": "novelfull.lua",
+            "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/v1/lua/novelfull.lua",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/icons/novelfullcom.png",
+            "lang": "en",
+            "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "Nov Love",
+            "fileName": "novlovecom.lua",
+            "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/v1/lua/novlovecom.lua",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/icons/novgoco.png",
+            "lang": "en",
+            "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "Read Novel Full",
+            "fileName": "readnovelfull.lua",
+            "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/v1/lua/readnovelfull.lua",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/icons/readnovelfullcom.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "Novel Bin",
+            "fileName": "novelbinme.lua",
+            "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/v1/lua/novelbinme.lua",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/icons/novelbinme.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "Novel Fire",
+            "fileName": "novelfirenet.lua",
+            "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/v1/lua/novelfirenet.lua",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@master/icons/novelfirenet.png",
+            "lang": "en",
+            "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        }
+    ]
+}
