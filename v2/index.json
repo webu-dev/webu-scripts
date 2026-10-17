@@ -13,7 +13,7 @@
         {
             "name": "FreeWebNovel",
             "identifier": "freewebnovel.com",
-            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/main/R/js/freewebnovel.js",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/main/v2/js/freewebnovel.js",
             "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/main/icons/freewebnovel.png",
             "lang": "en",
             "versionCode": 1,
