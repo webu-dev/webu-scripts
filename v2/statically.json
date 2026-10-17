@@ -1,0 +1,114 @@
+{
+    "extensions": [
+        {
+            "name": "FanMTL",
+            "identifier": "fantml.com",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/fanmtl.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/fanmtl.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "FreeWebNovel",
+            "identifier": "freewebnovel.com",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/freewebnovel.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/freewebnovel.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "LightNovelHeaven",
+            "identifier": "lightnovelheaven.lua",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/lightnovelheaven.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/lightnovelheaven.png",
+            "lang": "en",
+            "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "MTL Novel",
+            "identifier": "mtlnovel.me",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/mtlnovel.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/mtlnovel.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "Novel Fire",
+            "identifier": "novelfirenet.lua",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/novelfire.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/novelfire.png",
+            "lang": "en",
+            "versionCode": 3,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "Novel Full",
+            "identifier": "novelfull.lua",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/novelfull.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/novelfull.png",
+            "lang": "en",
+            "versionCode": 3,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "NovelPing",
+            "identifier": "novelping.com",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/novelping.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/novelping.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "Novel Trust",
+            "identifier": "noveltrust.com",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/noveltrust.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/noveltrust.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "NovGo",
+            "identifier": "novgo.com",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/novgo.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/novgo.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "Read Novel Full",
+            "identifier": "readnovelfull.lua",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/readnovelfull.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/readnovelfull.png",
+            "lang": "en",
+            "versionCode": 2,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "WuxiaBox",
+            "identifier": "wuxiabox.com",
+            "extensionUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/v2/js/wuxiabox.js",
+            "imgUrl": "https://cdn.statically.io/gh/webu-dev/webu-scripts/main/icons/wuxiabox.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        }
+    ]
+}
