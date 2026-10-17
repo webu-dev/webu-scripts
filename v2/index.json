@@ -101,6 +101,26 @@
             "hash": ""
         },
         {
+            "name": "ReadNovelMtl",
+            "identifier": "readnovelmtl.lua",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/main/v2/js/readnovelmtl.js",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/main/icons/readnovelmtl.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
+            "name": "WTR-Lab",
+            "identifier": "wtr-lab.com",
+            "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/main/v2/js/wtrlab.js",
+            "imgUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/main/icons/wtrlab.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
             "name": "WuxiaBox",
             "identifier": "wuxiabox.com",
             "extensionUrl": "https://raw.githubusercontent.com/webu-dev/webu-scripts/main/v2/js/wuxiabox.js",
