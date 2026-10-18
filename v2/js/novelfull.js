@@ -375,7 +375,8 @@ const source = {
 
         const paragraphs = content.select("p").map(p => p.text().trim())
             .filter(text => text.length > 0)
-            .join("\n\n");
+            .map(p => `<p>${p}</p>`)
+            .join("");
 
         return paragraphs;
     }

@@ -611,7 +611,7 @@ const source = {
                 paragraphs.push(text);
             }
             if (paragraphs.length > 0) {
-                return paragraphs.join("\n\n");
+                return paragraphs.map(p => `<p>${p}</p>`).join("");
             }
         }
 

@@ -659,7 +659,7 @@ const source = {
                         pTexts.push(t);
                     }
                 }
-                paragraphs = pTexts.join("\n\n");
+                paragraphs = pTexts.map(p => `<p>${p}</p>`).join("");
             }
 
             // Fallback if no <p> tags found or all empty

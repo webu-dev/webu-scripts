@@ -299,7 +299,7 @@ const source = {
                 if (/If you find any errors \(non-standard content/i.test(text)) continue;
                 paragraphs.push(text);
             }
-            return paragraphs.join("\n\n");
+            return paragraphs.map(p => `<p>${p}</p>`).join("");
         }
 
         return container.text().trim();

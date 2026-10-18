@@ -374,7 +374,8 @@ const source = {
         if (pElements.length > 0) {
             paragraphs = pElements.map(p => p.text().trim())
                 .filter(text => text.length > 0)
-                .join("\n\n");
+                .map(p => `<p>${p}</p>`)
+                .join("");
         }
         if (!paragraphs) {
             const raw = content.html();

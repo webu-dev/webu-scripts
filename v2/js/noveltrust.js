@@ -215,8 +215,7 @@ const source = {
         const payload = `searchkey=${encodeURIComponent(trimmed)}`;
 
         let resp = await postWithRetry(searchUrl, payload, {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Referer": "https://noveltrust.com/"
+            "Content-Type": "application/x-www-form-urlencoded"
         });
 
         if (!resp || resp.status !== 200 || !resp.body) {
@@ -306,10 +305,7 @@ const source = {
             throw new Error("Invalid novelUrl: " + novelUrl);
         }
 
-        let resp = await fetchWithRetry(cleanUrl, {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-            "Referer": "https://noveltrust.com/"
-        });
+        let resp = await fetchWithRetry(cleanUrl);
         if (!resp || resp.status !== 200 || !resp.body) {
             throw new Error(`Failed to load novel page: HTTP ${resp ? resp.status : "unknown"}`);
         }
@@ -517,11 +513,7 @@ const source = {
         if (slug) {
             try {
                 const ajaxUrl = `https://noveltrust.com/ajax/get-list-chapter?novel_id=${encodeURIComponent(slug)}`;
-                const ajaxResp = await fetchWithRetry(ajaxUrl, {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json, text/javascript, */*; q=0.01",
-                    "Referer": cleanUrl
-                });
+                const ajaxResp = await fetchWithRetry(ajaxUrl);
                 if (ajaxResp && ajaxResp.status === 200 && ajaxResp.body) {
                     let data = null;
                     try {
@@ -616,10 +608,7 @@ const source = {
         const cleanUrl = toAbsoluteUrl(chapterUrl.trim());
         if (!cleanUrl) return "";
 
-        let resp = await fetchWithRetry(cleanUrl, {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Referer": "https://noveltrust.com/"
-        });
+        let resp = await fetchWithRetry(cleanUrl);
         if (!resp || resp.status !== 200 || !resp.body) {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
@@ -656,7 +645,7 @@ const source = {
                         }
                     }
                 }
-                paragraphs = pTexts.join("\n\n");
+                paragraphs = pTexts.map(p => `<p>${p}</p>`).join("");
             }
 
             // Fallback if no <p> tags found or all empty

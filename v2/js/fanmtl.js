@@ -523,7 +523,8 @@ const source = {
         if (pElements.length > 0) {
             const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
                 .filter(text => text.length > 0)
-                .join("\n\n");
+                .map(p => `<p>${p}</p>`)
+                .join("");
             if(paragraphs) return paragraphs;
         }
 

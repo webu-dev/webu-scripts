@@ -668,7 +668,8 @@ const source = {
                         .split(/\n\s*\n/)
                         .map(p => decodeHtmlEntities(p.trim()))
                         .filter(t => t.length > 0)
-                        .join("\n\n");
+                        .map(p => `<p>${p}</p>`)
+                        .join("");
                 } else {
                     paragraphs = decodeHtmlEntities(content.text().trim());
                 }

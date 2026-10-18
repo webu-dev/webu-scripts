@@ -517,6 +517,6 @@ const source = {
             return text.trim();
         }).filter(t => t.length > 0);
 
-        return cleanedParagraphs.join("\n\n");
+        return cleanedParagraphs.map(p => `<p>${p}</p>`).join("");
     }
 };
