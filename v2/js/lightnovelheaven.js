@@ -4,6 +4,50 @@
 //@ts-check
 
 /**
+ * Decodes standard and numeric HTML entities.
+ * @param {string} str
+ * @returns {string}
+ */
+function decodeHtmlEntities(str) {
+    if (!str || typeof str !== "string") return "";
+    return str
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&apos;/gi, "'")
+        .replace(/&#039;/gi, "'")
+        .replace(/&#x27;/gi, "'")
+        .replace(/&lsquo;/gi, "‘")
+        .replace(/&rsquo;/gi, "’")
+        .replace(/&ldquo;/gi, "“")
+        .replace(/&rdquo;/gi, "”")
+        .replace(/&hellip;/gi, "...")
+        .replace(/&mdash;/gi, "—")
+        .replace(/&ndash;/gi, "–")
+        .replace(/&#(\d+);/g, (_, dec) => {
+            /* Convert number html code entities */
+            try {
+                const code = parseInt(dec, 10);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        })
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            /* Convert hex html code entities */
+            try {
+                const code = parseInt(hex, 16);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        });
+}
+
+/**
  * Normalizes a URL to be absolute with https and no duplicate slashes in paths.
  * Normalizes www.lightnovelheaven.com to lightnovelheaven.com.
  * Returns empty string for invalid, non-navigable, or javascript URLs.
@@ -352,9 +396,9 @@ const source = {
         if (rawChapters.length === 0) {
             try {
                 const ajaxUrl = `${baseNorm}/ajax/chapters/`;
-                let ajaxResp = await http.post(ajaxUrl);
+                let ajaxResp = await http.post(ajaxUrl, "", { "X-Requested-With": "XMLHttpRequest", "Referer": baseUrl });
                 if ((!ajaxResp || ajaxResp.status !== 200) && (!ajaxResp || ajaxResp.status === 429 || ajaxResp.status >= 500)) {
-                    ajaxResp = await http.post(ajaxUrl);
+                    ajaxResp = await http.post(ajaxUrl, "", { "X-Requested-With": "XMLHttpRequest", "Referer": baseUrl });
                 }
                 if (ajaxResp && ajaxResp.status === 200 && ajaxResp.body) {
                     const $ajax = parseHtml(ajaxResp.body);
@@ -408,34 +452,35 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
-        if (!chapterUrl || !chapterUrl.trim()) return "";
-        const url = toAbsoluteUrl(chapterUrl);
-        if (!url) return "";
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
+        let cleanUrl = toAbsoluteUrl(chapterUrl.trim());
+        if (!cleanUrl) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
 
-        let resp = await http.get(url);
+        /* Network request with retry and backoff on 429 is handled in HttpBridge */
+        let resp = await http.get(cleanUrl);
         if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
-            resp = await http.get(url);
+            resp = await http.get(cleanUrl);
         }
         if (!resp || resp.status !== 200 || !resp.body) {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
-        const $ = parseHtml(resp.body);
-        const content = $(".reading-content .text-left, .reading-content, .entry-content").first();
-        if (!content) {
-            return "";
-        }
-        // Clean ad elements, iframes, scripts, ins, navigation, and related reading blocks
-        content.remove(".code-block, script, iframe, style, ins, .ads, .ad, noscript, div[align='center'], .related-reading-wrap, .related-reading-content, .chapter-nav, .nav-links, .select-pagination");
 
-        const pElements = content.select("p");
+        const $ = parseHtml(resp.body);
+        const container = $(".reading-content .text-left, .reading-content, .entry-content").first();
+        if (!container) {
+            throw new Error(`Failed to load chapter container`);
+        }
+
+        /* Paragraph selection */
+        const pElements = container.select("p");
         if (pElements.length > 0) {
-            const paragraphs = pElements.map(p => p.text().trim())
+            const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
                 .filter(text => text.length > 0)
                 .map(p => `<p>${p}</p>`)
                 .join("");
-            if (paragraphs) return paragraphs;
+            return paragraphs;
         }
-
-        return content.text().trim();
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };

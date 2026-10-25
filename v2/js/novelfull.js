@@ -4,6 +4,50 @@
 //@ts-check
 
 /**
+ * Decodes standard and numeric HTML entities.
+ * @param {string} str
+ * @returns {string}
+ */
+function decodeHtmlEntities(str) {
+    if (!str || typeof str !== "string") return "";
+    return str
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&apos;/gi, "'")
+        .replace(/&#039;/gi, "'")
+        .replace(/&#x27;/gi, "'")
+        .replace(/&lsquo;/gi, "‘")
+        .replace(/&rsquo;/gi, "’")
+        .replace(/&ldquo;/gi, "“")
+        .replace(/&rdquo;/gi, "”")
+        .replace(/&hellip;/gi, "...")
+        .replace(/&mdash;/gi, "—")
+        .replace(/&ndash;/gi, "–")
+        .replace(/&#(\d+);/g, (_, dec) => {
+            /* Convert number html code entities */
+            try {
+                const code = parseInt(dec, 10);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        })
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            /* Convert hex html code entities */
+            try {
+                const code = parseInt(hex, 16);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        });
+}
+
+/**
  * Normalizes a URL to be absolute with https and no double slashes in paths.
  * Returns empty string for invalid, non-navigable, or javascript URLs.
  * @param {string} url
@@ -250,9 +294,9 @@ const source = {
         if (novelId) {
             try {
                 const ajaxUrl = `https://novelfull.com/ajax-chapter-option?novelId=${novelId}`;
-                let chResp = await http.get(ajaxUrl);
+                let chResp = await http.get(ajaxUrl, { "X-Requested-With": "XMLHttpRequest", "Referer": baseUrl });
                 if ((!chResp || chResp.status !== 200) && (!chResp || chResp.status === 429 || chResp.status >= 500)) {
-                    chResp = await http.get(ajaxUrl);
+                    chResp = await http.get(ajaxUrl, { "X-Requested-With": "XMLHttpRequest", "Referer": baseUrl });
                 }
 
                 if (chResp && chResp.status === 200 && chResp.body) {
@@ -354,30 +398,36 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
-        if (!chapterUrl || !chapterUrl.trim()) return "";
-        const url = toAbsoluteUrl(chapterUrl);
-        if (!url) return "";
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
+        let cleanUrl = toAbsoluteUrl(chapterUrl.trim());
+        if (!cleanUrl) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
 
-        let resp = await http.get(url);
+        /* Network request with retry and backoff on 429 is handled in HttpBridge */
+        let resp = await http.get(cleanUrl);
         if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
-            resp = await http.get(url);
+            resp = await http.get(cleanUrl);
         }
         if (!resp || resp.status !== 200 || !resp.body) {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
+
+        /* DOM parsing */
         const $ = parseHtml(resp.body);
-        const content = $("#chapter-content, .chapter-c, .chapter-content").first();
-        if (!content) {
-            return "";
+        const container = $("#chapter-content, .chapter-c, .chapter-content").first();
+        if (!container) {
+            throw new Error(`Failed to load chapter container`);
         }
-        // Clean any ad elements, iframes, scripts
-        content.remove("iframe, script, style, .ads, .ad, noscript, div[align='center']");
 
-        const paragraphs = content.select("p").map(p => p.text().trim())
-            .filter(text => text.length > 0)
-            .map(p => `<p>${p}</p>`)
-            .join("");
-
-        return paragraphs;
+        /* Paragraph selection */
+        const pElements = container.select("p");
+        if (pElements.length > 0) {
+            const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
+                .filter(text => text.length > 0)
+                .map(p => `<p>${p}</p>`)
+                .join("");
+            return paragraphs;
+        }
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };

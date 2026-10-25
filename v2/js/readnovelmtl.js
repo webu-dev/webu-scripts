@@ -62,6 +62,7 @@ function decodeHtmlEntities(str) {
         .replace(/&mdash;/gi, "—")
         .replace(/&ndash;/gi, "–")
         .replace(/&#(\d+);/g, (_, dec) => {
+            /* Convert number html code entities */
             try {
                 const code = parseInt(dec, 10);
                 return code ? String.fromCodePoint(code) : "";
@@ -70,6 +71,7 @@ function decodeHtmlEntities(str) {
             }
         })
         .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            /* Convert hex html code entities */
             try {
                 const code = parseInt(hex, 16);
                 return code ? String.fromCodePoint(code) : "";
@@ -380,14 +382,12 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
-        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim() ||
-            chapterUrl.trim() === "#" || chapterUrl.trim().startsWith("javascript:")) {
-            return "";
-        }
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
+        let cleanUrl = toAbsoluteUrl(chapterUrl.trim());
+        if (!cleanUrl) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
 
-        const cleanUrl = toAbsoluteUrl(chapterUrl.trim());
-        if (!cleanUrl) return "";
-
+        /* Network request with retry and backoff on 429 is handled in HttpBridge */
         let resp = await http.get(cleanUrl);
         if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
             resp = await http.get(cleanUrl);
@@ -406,35 +406,19 @@ const source = {
 
         const $ = parseHtml(resp.body);
         const container = $("#content, article#chapter-article, div.chapter-content, article").first();
-        if (container) {
-            container.remove("script, style, ins, iframe, noscript, .ads, .ad, div[align='center']");
+        if (!container) {
+            throw new Error(`Failed to load chapter container`);
         }
 
         const pElements = $("#content p, .chapter-content p, article p");
         if (pElements.length > 0) {
-            const paragraphs = [];
-            for (const p of pElements) {
-                let html = p.html();
-                let text = html.includes("<br")
-                    ? cleanDescription(html)
-                    : decodeHtmlEntities(p.text().trim());
-                if (!text) continue;
-                // Strip watermark
-                text = text.replace(/continue\s+read(?:ing)?\s+on\s+readnovelmtl\.com/gi, "").trim();
-                if (!text) continue;
-                paragraphs.push(text);
-            }
-            if (paragraphs.length > 0) {
-                return paragraphs.map(p => `<p>${p}</p>`).join("");
-            }
+            const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
+                .filter(text => text.length > 0)
+                .filter(text => !/continue\s+read(?:ing)?\s+on\s+readnovelmtl\.com/gi.test(text))
+                .map(p => `<p>${p}</p>`)
+                .join("");
+            return paragraphs;
         }
-
-        if (container) {
-            let rawText = cleanDescription(container.html()) || decodeHtmlEntities(container.text().trim());
-            rawText = rawText.replace(/continue\s+read(?:ing)?\s+on\s+readnovelmtl\.com/gi, "").trim();
-            return rawText;
-        }
-
-        return "";
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };

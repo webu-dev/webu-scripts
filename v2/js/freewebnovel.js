@@ -1,10 +1,10 @@
 /**
  * Source script for freewebnovel.com
  */
-//@ts-check
+/*@ts-check*/
 
 /**
- * Decodes standard HTML entities in text.
+ * Decodes standard and numeric HTML entities.
  * @param {string} str
  * @returns {string}
  */
@@ -28,7 +28,7 @@ function decodeHtmlEntities(str) {
         .replace(/&mdash;/gi, "—")
         .replace(/&ndash;/gi, "–")
         .replace(/&#(\d+);/g, (_, dec) => {
-            //convert number html code entities
+            /* Convert number html code entities */
             try {
                 const code = parseInt(dec, 10);
                 return code ? String.fromCodePoint(code) : "";
@@ -37,7 +37,7 @@ function decodeHtmlEntities(str) {
             }
         })
         .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
-            //convert hex html code entities
+            /* Convert hex html code entities */
             try {
                 const code = parseInt(hex, 16);
                 return code ? String.fromCodePoint(code) : "";
@@ -232,7 +232,7 @@ const source = {
             results.push({ title, link, imgSrc });
         }
 
-        // Direct selector fallback if container didn't match rows
+        /* Direct selector fallback if container didn't match rows */
         if (results.length === 0) {
             const titleLinks = $(".tit a, h3 a[href*='/novel/']");
             for (const titleA of titleLinks) {
@@ -284,7 +284,7 @@ const source = {
 
         const $ = parseHtml(resp.body);
 
-        // Attempt JSON-LD extraction
+        /* Attempt JSON-LD extraction */
         let jsonLdBook = null;
         try {
             const jsonLdScripts = $("script[type='application/ld+json']");
@@ -315,7 +315,7 @@ const source = {
             }
         } catch (_) {}
 
-        // Title
+        /* Title */
         let title = $("h1.tit, .m-imgtxt .tit, h1").first()?.text().trim() || "";
         if (!title && jsonLdBook && jsonLdBook.name) {
             title = jsonLdBook.name;
@@ -329,7 +329,7 @@ const source = {
         }
         title = decodeHtmlEntities(title);
 
-        // Author
+        /* Author */
         let author = "";
         const authorA = $(".m-imgtxt a[href*='/author/'], .right a[href*='/author/'], a[href*='/author/']").first();
         if (authorA) {
@@ -349,7 +349,7 @@ const source = {
             if (metaAuthor) author = decodeHtmlEntities(metaAuthor.trim());
         }
 
-        // Cover Image
+        /* Cover Image */
         let imageUrl = "";
         const coverImg = $(".m-book1 .pic img, .m-imgtxt .pic img, .pic img").first();
         if (coverImg) {
@@ -373,7 +373,7 @@ const source = {
             if (metaImg) imageUrl = toAbsoluteUrl(metaImg);
         }
 
-        // Description
+        /* Description */
         let description = "";
         const descEl = $(".m-desc .txt .inner, .m-desc .inner, .m-desc .txt, .abstract + .txt .inner").first();
         if (descEl) {
@@ -416,7 +416,7 @@ const source = {
             }
         }
 
-        // Status
+        /* Status */
         let status = "";
         const metaStatus = $("meta[property='og:novel:status']").attr("content")?.trim() || "";
         if (metaStatus) {
@@ -443,7 +443,7 @@ const source = {
             status = "Ongoing";
         }
 
-        // Genres
+        /* Genres */
         const genreLinks = $(".m-imgtxt .txt a[href*='/genre/'], .m-book1 a[href*='/genre/'], a[href*='/genre/']");
         const genreList = [];
         for (const g of genreLinks) {
@@ -467,7 +467,7 @@ const source = {
             }
         }
 
-        // Tags
+        /* Tags */
         const tagLinks = $(".m-imgtxt a[href*='/tag/'], a[href*='/tag/']");
         const tagList = [];
         for (const t of tagLinks) {
@@ -478,7 +478,7 @@ const source = {
         }
         const tags = tagList.join(", ");
 
-        // Chapter List Extraction
+        /* Chapter List Extraction */
         const chapters = [];
         const seenChapterLinks = new Set();
         const slug = extractSlug(cleanUrl);
@@ -490,7 +490,7 @@ const source = {
             if (!link || seenChapterLinks.has(link)) return;
 
             const normLink = link.replace(/\/+$/, "");
-            if (normLink === normCleanUrl) return; // Discard circular link back to overview
+            if (normLink === normCleanUrl) return; /* Discard circular link back to overview */
 
             if (!/\/chapter[-_]/i.test(normLink) && !/\/(?:ch|c|ep|episode)[-_]?\d+/i.test(normLink)) {
                 return;
@@ -534,14 +534,16 @@ const source = {
             }
         }
 
-        // Strategy 1: Chapters AJAX endpoint
+        /* Strategy 1: Chapters AJAX endpoint */
         if (slug) {
             try {
+                const ajaxHeaders = {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Accept": "application/json, text/javascript, */*; q=0.01",
+                    "Referer": cleanUrl
+                };
                 const firstAjaxUrl = `https://freewebnovel.com/novel/${slug}?ajax=chapters&page=1&pageSize=200`;
-                const firstResp = await fetchWithRetry(firstAjaxUrl, {
-                    "x-requested-with": "XMLHttpRequest",
-                    "accept": "application/json, text/javascript, */*; q=0.01"
-                });
+                const firstResp = await fetchWithRetry(firstAjaxUrl, ajaxHeaders);
                 if (firstResp && firstResp.status === 200 && firstResp.body) {
                     let firstData = null;
                     try {
@@ -569,10 +571,7 @@ const source = {
                                 for (let pageNum = p; pageNum < p + 3 && pageNum <= maxPage; pageNum++) {
                                     const pageUrl = `https://freewebnovel.com/novel/${slug}?ajax=chapters&page=${pageNum}&pageSize=200`;
                                     chunkPromises.push(
-                                        fetchWithRetry(pageUrl, {
-                                            "x-requested-with": "XMLHttpRequest",
-                                            "accept": "application/json, text/javascript, */*; q=0.01"
-                                        }).then(res => {
+                                        fetchWithRetry(pageUrl, ajaxHeaders).then(res => {
                                             if (res && res.status === 200 && res.body) {
                                                 try {
                                                     const d = JSON.parse(res.body);
@@ -598,7 +597,7 @@ const source = {
             }
         }
 
-        // Strategy 2: Overview page static DOM fallback (#idData li a)
+        /* Strategy 2: Overview page static DOM fallback (#idData li a) */
         if (chapters.length === 0) {
             let staticLinks = $("#idData li a");
             if (staticLinks.length === 0) {
@@ -632,10 +631,12 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
-        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) return "";
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
         let cleanUrl = toAbsoluteUrl(chapterUrl.trim());
-        if (!cleanUrl) return "";
+        if (!cleanUrl) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
 
+        /* Network request with retry and backoff on 429 is handled in HttpBridge */
         let resp = await http.get(cleanUrl);
         if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
             resp = await http.get(cleanUrl);
@@ -644,11 +645,14 @@ const source = {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
 
+        /* DOM parsing */
         const $ = parseHtml(resp.body);
         const container = $("#article").first() || $(".txt").first();
         if(!container) {
             throw new Error(`Failed to load chapter container`);
         }
+
+        /* Paragraph selection */
         const pElements = container.select("p")
         if(pElements.length > 0) {
             const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
@@ -656,8 +660,7 @@ const source = {
                 .map(p => `<p>${p}</p>`)
                 .join("");
             return paragraphs
-        } else {
-            throw new Error(`Failed to load chapter paragraphs`);
         }
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };

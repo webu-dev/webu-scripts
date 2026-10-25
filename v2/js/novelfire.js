@@ -3,7 +3,7 @@
  */
 
 /**
- * Decodes standard HTML entities in text.
+ * Decodes standard and numeric HTML entities.
  * @param {string} str
  * @returns {string}
  */
@@ -27,7 +27,7 @@ function decodeHtmlEntities(str) {
         .replace(/&mdash;/gi, "—")
         .replace(/&ndash;/gi, "–")
         .replace(/&#(\d+);/g, (_, dec) => {
-            /* convert number html code entities */
+            /* Convert number html code entities */
             try {
                 const code = parseInt(dec, 10);
                 return code ? String.fromCodePoint(code) : "";
@@ -36,7 +36,7 @@ function decodeHtmlEntities(str) {
             }
         })
         .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
-            /* convert hex html code entities */
+            /* Convert hex html code entities */
             try {
                 const code = parseInt(hex, 16);
                 return code ? String.fromCodePoint(code) : "";
@@ -543,9 +543,8 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
-        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim() || chapterUrl.trim() === "#") {
-            return "";
-        }
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
 
         /* Network request with client-side redirect following (retry on 429 handled in HttpBridge) */
         const resp = await fetchWithRedirect(chapterUrl);
@@ -553,14 +552,14 @@ const source = {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
 
-        /* DOM parsing*/
+        /* DOM parsing */
         const $ = parseHtml(resp.body);
         const container = $("#chapter-container, .chapter-content, #chr-content, #content, .reading-content").first();
         if (!container) {
             throw new Error(`Failed to load chapter container`);
         }
 
-        /* Paragraph selection*/
+        /* Paragraph selection */
         const pElements = container.select("p");
         if (pElements.length > 0) {
             const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))

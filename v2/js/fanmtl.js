@@ -28,7 +28,7 @@ function decodeHtmlEntities(str) {
         .replace(/&mdash;/gi, "—")
         .replace(/&ndash;/gi, "–")
         .replace(/&#(\d+);/g, (_, dec) => {
-            //convert number html code entities
+            /* Convert number html code entities */
             try {
                 const code = parseInt(dec, 10);
                 return code ? String.fromCodePoint(code) : "";
@@ -37,7 +37,7 @@ function decodeHtmlEntities(str) {
             }
         })
         .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
-            //convert hex html code entities
+            /* Convert hex html code entities */
             try {
                 const code = parseInt(hex, 16);
                 return code ? String.fromCodePoint(code) : "";
@@ -60,25 +60,27 @@ function toAbsoluteUrl(url) {
         return "";
     }
     if (clean.startsWith("//")) {
-        //prepend https:
+        /* prepend https: */
         clean = `https:${clean}`;
     } else if (clean.startsWith("http://")) {
-        //replace http with https
+        /* replace http with https */
         clean = "https://" + clean.slice(7);
     } else if (clean.startsWith("fanmtl.com") || clean.startsWith("www.fanmtl.com")) {
-        //base domain prepend with https://
+        /* base domain prepend with https:// */
         clean = `https://${clean}`;
     } else if (!clean.startsWith("https://")) {
         clean = `https://www.fanmtl.com${clean.startsWith("/") ? "" : "/"}${clean}`;
     }
 
-    //canonicalize to https://www.
+    /* Canonicalize to https://www. */
     clean = clean.replace(/^https?:\/\/fanmtl\.com(\/|$)/i, "https://www.fanmtl.com$1");
 
-    // Deduplicate consecutive slashes only within the pathname:
-    // A simple global replace(/\/+/g, "/") would break "https://" into "https:/"
-    // and corrupt slashes inside query parameters or hash fragments.
-    // match[1] = origin (protocol + host), match[2] = pathname, match[3] = query/hash
+    /*
+    * Deduplicate consecutive slashes only within the pathname:
+    * A simple global replace(/\/+/g, "/") would break "https://" into "https:/"
+    * and corrupt slashes inside query parameters or hash fragments.
+    * match[1] = origin (protocol + host), match[2] = pathname, match[3] = query/hash
+    */
     const match = clean.match(/^(https:\/\/[^/?#]+)([^?#]*)([\s\S]*)$/);
     if (match) {
         const origin = match[1];
@@ -246,7 +248,7 @@ const source = {
 
             const $ = parseHtml(resp.body);
 
-            // Extract searchid and max page from pagination links
+            /* Extract searchid and max page from pagination links */
             const pageLinks = $(".pagination a[href*='searchid='], .paging a[href*='searchid=']");
             for (const a of pageLinks) {
                 const href = a.attr("href");
@@ -306,7 +308,7 @@ const source = {
      * }>}
      */
     async getNovel(novelUrl) {
-        // Input validation
+        /* Input validation */
         if (!novelUrl || typeof novelUrl !== "string") {
             throw new Error(`Invalid novel URL:=${novelUrl}`);
         }
@@ -315,7 +317,7 @@ const source = {
             throw new Error(`Invalid novel URL:=${novelUrl}`);
         }
 
-        // Network request with retry backoff delay on 429 that is handled in HttpBridge
+        /* Network request with retry backoff delay on 429 that is handled in HttpBridge */
         let resp = await http.get(cleanUrl);
         if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
             resp = await http.get(cleanUrl);
@@ -326,9 +328,9 @@ const source = {
 
         const $ = parseHtml(resp.body);
 
-        // Extract query parameter value for the key wjm to use for pagination
+        /* Extract query parameter value for the key wjm to use for pagination */
         const slugMatch = cleanUrl.match(/\/novel\/([a-zA-Z0-9_-]+)/);
-        // Extract wjm value from html
+        /* Extract wjm value from html */
         let wjm = slugMatch ? slugMatch[1] : "";
         if (!wjm) {
             const wjmLink = $("#chpagedlist a[href*='wjm=']").first()?.attr("href") || "";
@@ -338,7 +340,7 @@ const source = {
             }
         }
 
-        // Title
+        /* Title */
         const titleEl = $("h1.novel-title, h1[itemprop='name'], h1").first();
         let title = titleEl ? titleEl.text().trim() : "";
         if (!title) {
@@ -347,13 +349,13 @@ const source = {
         }
         title = decodeHtmlEntities(title).trim();
 
-        // Author
+        /* Author */
         let author = $("span[itemprop='author'], .author span[itemprop='author']").first()?.text()?.trim() ||
                      $(".author").first()?.text()?.trim() || "";
         author = author.replace(/^Author:\s*/i, "").trim();
         author = decodeHtmlEntities(author).trim();
 
-        // Cover image
+        /* Cover image */
         const coverImg = $("figure.cover img, .fixed-img img, figure.novel-cover img").first();
         let imageUrl = "";
         if (coverImg) {
@@ -376,7 +378,7 @@ const source = {
             }
         }
 
-        // Status
+        /* Status */
         let status = "Ongoing";
         const statsSpans = $(".header-stats span, .novel-stats span");
         for (const sp of statsSpans) {
@@ -400,19 +402,19 @@ const source = {
             }
         }
 
-        // Genres
+        /* Genres */
         const genreElements = $(".categories a[href*='/list/'], .categories a.property-item");
         const genres = Array.from(new Set(
             genreElements.map(el => decodeHtmlEntities(el.text().trim())).filter(Boolean)
         )).join(", ");
 
-        // Tags
+        /* Tags */
         const tagElements = $(".tags a.tag, .categories a.tag, a.tag");
         const tags = Array.from(new Set(
             tagElements.map(el => decodeHtmlEntities(el.text().trim())).filter(Boolean)
         )).join(", ");
 
-        // Description
+        /* Description */
         const descEl = $("#info .summary .content, .summary .content, #info .summary").first();
         let description = "";
         if (descEl) {
@@ -423,12 +425,12 @@ const source = {
         }
         description = decodeHtmlEntities(description).trim();
 
-        // Chapters
+        /* Chapters */
         const chapters = [];
         const seenChapterLinks = new Set();
         chapters.push(...extractChapters($, seenChapterLinks));
 
-        // Determine max page from pagination
+        /* Determine max page from pagination */
         let maxPage = 0;
         const pageLinks = $("#chpagedlist .pagination a[href*='page=']");
         for (const a of pageLinks) {
@@ -495,12 +497,12 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
-        // Input validation
-        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) return "";
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
         let cleanUrl = toAbsoluteUrl(chapterUrl.trim());
-        if (!cleanUrl) return "";
+        if (!cleanUrl) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
 
-        // Network request with retry backoff delay on 429 that is handled in HttpBridge
+        /* Network request with retry and backoff on 429 is handled in HttpBridge */
         let resp = await http.get(cleanUrl);
         if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
             resp = await http.get(cleanUrl);
@@ -509,26 +511,22 @@ const source = {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
 
-        // DOM parsing
+        /* DOM parsing */
         const $ = parseHtml(resp.body);
         const container = $("article#chapter-article div.chapter-content, div.chapter-content, article#chapter-article, #chapter-article").first();
         if (!container) {
-            return "";
+            throw new Error(`Failed to load chapter container`);
         }
-        // Remove boilerplate, ads, navigation, notice elements
-        container.remove("script, style, ins, iframe, noscript, .ads, .ad, .chapternav, .guide-message");
 
-        // Paragraph selection
+        /* Paragraph selection */
         const pElements = container.select("p");
         if (pElements.length > 0) {
             const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
                 .filter(text => text.length > 0)
                 .map(p => `<p>${p}</p>`)
                 .join("");
-            if(paragraphs) return paragraphs;
+            return paragraphs;
         }
-
-        // Return empty as fallback because paragarphs could not be parsed
-        return "";
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };

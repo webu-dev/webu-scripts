@@ -4,7 +4,7 @@
 //@ts-check
 
 /**
- * Decodes standard HTML entities in text.
+ * Decodes standard and numeric HTML entities.
  * @param {string} str
  * @returns {string}
  */
@@ -15,15 +15,36 @@ function decodeHtmlEntities(str) {
         .replace(/&amp;/gi, "&")
         .replace(/&lt;/gi, "<")
         .replace(/&gt;/gi, ">")
-        .replace(/&quot;/gi, "\"")
-        .replace(/&#39;|&apos;/gi, "'")
-        .replace(/&rsquo;|&lsquo;/gi, "'")
-        .replace(/&rdquo;|&ldquo;/gi, "\"")
-        .replace(/&hellip;|…/gi, "...")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&apos;/gi, "'")
+        .replace(/&#039;/gi, "'")
+        .replace(/&#x27;/gi, "'")
+        .replace(/&lsquo;/gi, "‘")
+        .replace(/&rsquo;/gi, "’")
+        .replace(/&ldquo;/gi, "“")
+        .replace(/&rdquo;/gi, "”")
+        .replace(/&hellip;/gi, "...")
         .replace(/&mdash;/gi, "—")
         .replace(/&ndash;/gi, "–")
-        .replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-        .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)));
+        .replace(/&#(\d+);/g, (_, dec) => {
+            /* Convert number html code entities */
+            try {
+                const code = parseInt(dec, 10);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        })
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            /* Convert hex html code entities */
+            try {
+                const code = parseInt(hex, 16);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        });
 }
 
 /**
@@ -600,73 +621,36 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
-        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim() ||
-            chapterUrl.trim() === "#" || chapterUrl.trim().startsWith("javascript:")) {
-            return "";
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
+        let cleanUrl = toAbsoluteUrl(chapterUrl.trim());
+        if (!cleanUrl) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
+
+        /* Network request with retry and backoff on 429 is handled in HttpBridge */
+        let resp = await http.get(cleanUrl);
+        if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
+            resp = await http.get(cleanUrl);
         }
-
-        const cleanUrl = toAbsoluteUrl(chapterUrl.trim());
-        if (!cleanUrl) return "";
-
-        let resp = await fetchWithRetry(cleanUrl);
         if (!resp || resp.status !== 200 || !resp.body) {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
 
+        /* DOM parsing */
         const $ = parseHtml(resp.body);
-        const content = $(".m-read .txt, .m-read, #article, .chapter-content").first() || $(".txt").first();
-        let paragraphs = "";
-
-        if (content) {
-            // Strip ads, navigation, headings, styles, scripts
-            content.remove("h4, div[id^='pf-'], div[id^='bg-ssp-'], div[class*='pubfuture'], div[id*='pubfuture'], div.ad, div.ads, ins, iframe, script, style, noscript, .chapternav, .read-ads, .reader-ad-skip");
-
-            const pElements = content.select("p");
-            if (pElements.length > 0) {
-                const pTexts = [];
-                for (const p of pElements) {
-                    p.remove("script, style, iframe, ins, .reader-ad-skip, [id^='pf-'], [id^='bg-ssp-'], [class*='pubfuture'], [id*='pubfuture']");
-                    const html = p.html();
-                    if (html && /<br\s*[\/]?>/i.test(html)) {
-                        const lines = html
-                            .replace(/\s*<br\s*[\/]?>\s*/gi, "\n")
-                            .replace(/<[^>]+>/g, "")
-                            .split(/\n+/);
-                        for (const line of lines) {
-                            const cleanLine = decodeHtmlEntities(line).trim();
-                            if (cleanLine.length > 0 && !isWatermark(cleanLine)) {
-                                pTexts.push(cleanLine);
-                            }
-                        }
-                    } else {
-                        const t = decodeHtmlEntities(p.text().trim());
-                        if (t.length > 0 && !isWatermark(t)) {
-                            pTexts.push(t);
-                        }
-                    }
-                }
-                paragraphs = pTexts.map(p => `<p>${p}</p>`).join("");
-            }
-
-            // Fallback if no <p> tags found or all empty
-            if (!paragraphs) {
-                const rawHtml = content.html();
-                if (rawHtml) {
-                    const withNewlines = rawHtml
-                        .replace(/\s*<br\s*[\/]?>\s*/gi, "\n\n")
-                        .replace(/<\/p>/gi, "\n\n")
-                        .replace(/<[^>]+>/g, "");
-                    paragraphs = withNewlines
-                        .split(/\n+/)
-                        .map(p => decodeHtmlEntities(p.trim()))
-                        .filter(t => t.length > 0 && !isWatermark(t))
-                        .join("\n\n");
-                } else {
-                    paragraphs = decodeHtmlEntities(content.text().trim());
-                }
-            }
+        const container = $(".m-read .txt, .m-read, #article, .chapter-content").first() || $(".txt").first();
+        if (!container) {
+            throw new Error(`Failed to load chapter container`);
         }
 
-        return paragraphs;
+        /* Paragraph selection */
+        const pElements = container.select("p");
+        if (pElements.length > 0) {
+            const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
+                .filter(text => text.length > 0 && !isWatermark(text))
+                .map(p => `<p>${p}</p>`)
+                .join("");
+            return paragraphs;
+        }
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };

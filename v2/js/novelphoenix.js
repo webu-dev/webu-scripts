@@ -2,6 +2,11 @@
  * Source script for novelphoenix.com
  */
 
+/**
+ * Decodes standard and numeric HTML entities.
+ * @param {string} str
+ * @returns {string}
+ */
 function decodeHtmlEntities(str) {
     if (!str || typeof str !== "string") return "";
     return str
@@ -22,7 +27,7 @@ function decodeHtmlEntities(str) {
         .replace(/&mdash;/gi, "—")
         .replace(/&ndash;/gi, "–")
         .replace(/&#(\d+);/g, (_, dec) => {
-            /* convert number html code entities */
+            /* Convert number html code entities */
             try {
                 const code = parseInt(dec, 10);
                 return code ? String.fromCodePoint(code) : "";
@@ -31,7 +36,7 @@ function decodeHtmlEntities(str) {
             }
         })
         .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
-            /* convert hex html code entities */
+            /* Convert hex html code entities */
             try {
                 const code = parseInt(hex, 16);
                 return code ? String.fromCodePoint(code) : "";
@@ -312,6 +317,10 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
+
+        /* Network request with retry and backoff on 429 is handled in HttpBridge */
         let resp = await http.get(chapterUrl);
         if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
             resp = await http.get(chapterUrl);
@@ -320,6 +329,7 @@ const source = {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
 
+        /* DOM parsing */
         const $ = parseHtml(resp.body);
         const container = $("#chapter-container, .chapter-content, #chr-content").first();
         if (!container) {
@@ -335,8 +345,7 @@ const source = {
                 .join("");
 
             return paragraphs;
-        } else {
-            throw new Error(`Failed to load chapter paragraphs`);
         }
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };

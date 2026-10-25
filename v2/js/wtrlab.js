@@ -46,12 +46,36 @@ function decodeHtmlEntities(str) {
         .replace(/&amp;/gi, "&")
         .replace(/&lt;/gi, "<")
         .replace(/&gt;/gi, ">")
-        .replace(/&quot;/gi, "\"")
+        .replace(/&quot;/gi, '"')
         .replace(/&#39;/gi, "'")
         .replace(/&apos;/gi, "'")
+        .replace(/&#039;/gi, "'")
+        .replace(/&#x27;/gi, "'")
+        .replace(/&lsquo;/gi, "‘")
+        .replace(/&rsquo;/gi, "’")
+        .replace(/&ldquo;/gi, "“")
+        .replace(/&rdquo;/gi, "”")
         .replace(/&hellip;/gi, "...")
         .replace(/&mdash;/gi, "—")
-        .replace(/&ndash;/gi, "–");
+        .replace(/&ndash;/gi, "–")
+        .replace(/&#(\d+);/g, (_, dec) => {
+            /* Convert number html code entities */
+            try {
+                const code = parseInt(dec, 10);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        })
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            /* Convert hex html code entities */
+            try {
+                const code = parseInt(hex, 16);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        });
 }
 
 /**
@@ -86,9 +110,9 @@ const source = {
         if (p === 1) {
             try {
                 const searchApiUrl = "https://wtr-lab.com/api/search";
-                let resp = await http.post(searchApiUrl, { text: trimmed });
+                let resp = await http.post(searchApiUrl, { text: trimmed }, { "Referer": "https://wtr-lab.com/en/novel-finder" });
                 if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
-                    resp = await http.post(searchApiUrl, { text: trimmed });
+                    resp = await http.post(searchApiUrl, { text: trimmed }, { "Referer": "https://wtr-lab.com/en/novel-finder" });
                 }
 
                 if (resp && resp.status === 200 && resp.body) {
@@ -306,9 +330,9 @@ const source = {
             const chaptersApiUrl = `https://wtr-lab.com/api/chapters/${rawId}?start=1&end=${endCount}`;
 
             try {
-                let chResp = await http.get(chaptersApiUrl);
+                let chResp = await http.get(chaptersApiUrl, { "Accept": "application/json, text/plain, */*", "Referer": cleanUrl });
                 if ((!chResp || chResp.status !== 200) && (!chResp || chResp.status === 429 || chResp.status >= 500)) {
-                    chResp = await http.get(chaptersApiUrl);
+                    chResp = await http.get(chaptersApiUrl, { "Accept": "application/json, text/plain, */*", "Referer": cleanUrl });
                 }
 
                 if (chResp && chResp.status === 200 && chResp.body) {
@@ -434,9 +458,9 @@ const source = {
             chapter_no: chapterNo
         };
 
-        let readerResp = await http.post("https://wtr-lab.com/api/reader/get", readerPayload);
+        let readerResp = await http.post("https://wtr-lab.com/api/reader/get", readerPayload, { "Referer": cleanUrl });
         if ((!readerResp || readerResp.status !== 200) && (!readerResp || readerResp.status === 429 || readerResp.status >= 500)) {
-            readerResp = await http.post("https://wtr-lab.com/api/reader/get", readerPayload);
+            readerResp = await http.post("https://wtr-lab.com/api/reader/get", readerPayload, { "Referer": cleanUrl });
         }
 
         if (!readerResp || readerResp.status !== 200 || !readerResp.body) {
@@ -468,9 +492,9 @@ const source = {
         const fullContentUrl = contentUrl.startsWith("http") ? contentUrl : `https://wtr-lab.com${contentUrl}`;
 
         // Step 2: GET content_url
-        let contentResp = await http.get(fullContentUrl);
+        let contentResp = await http.get(fullContentUrl, { "Accept": "application/json, text/plain, */*", "Referer": cleanUrl });
         if ((!contentResp || contentResp.status !== 200) && (!contentResp || contentResp.status === 429 || contentResp.status >= 500)) {
-            contentResp = await http.get(fullContentUrl);
+            contentResp = await http.get(fullContentUrl, { "Accept": "application/json, text/plain, */*", "Referer": cleanUrl });
         }
 
         if (!contentResp || contentResp.status !== 200 || !contentResp.body) {

@@ -94,10 +94,11 @@ function decodeHtmlEntities(str) {
         .replace(/&rsquo;/gi, "’")
         .replace(/&ldquo;/gi, "“")
         .replace(/&rdquo;/gi, "”")
-        .replace(/&hellip;|…/gi, "...")
+        .replace(/&hellip;/gi, "...")
         .replace(/&mdash;/gi, "—")
         .replace(/&ndash;/gi, "–")
         .replace(/&#(\d+);/g, (_, dec) => {
+            /* Convert number html code entities */
             try {
                 const code = parseInt(dec, 10);
                 return code ? String.fromCodePoint(code) : "";
@@ -106,6 +107,7 @@ function decodeHtmlEntities(str) {
             }
         })
         .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            /* Convert hex html code entities */
             try {
                 const code = parseInt(hex, 16);
                 return code ? String.fromCodePoint(code) : "";
@@ -513,7 +515,7 @@ const source = {
                         const pageUrl = `https://www.wuxiabox.com/e/extend/fy.php?page=${p}&wjm=${wjm}`;
                         for (let attempt = 0; attempt < 2; attempt++) {
                             try {
-                                const res = await http.get(pageUrl);
+                                const res = await http.get(pageUrl, { "Referer": cleanUrl });
                                 if (res && res.status === 200 && res.body) {
                                     return { page: p, body: res.body };
                                 }
@@ -567,13 +569,12 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
-        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim() || chapterUrl.trim() === "#") {
-            return "";
-        }
-
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
         let cleanUrl = toAbsoluteUrl(chapterUrl.trim());
-        if (!cleanUrl) return "";
+        if (!cleanUrl) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
 
+        /* Network request with retry and backoff on 429 is handled in HttpBridge */
         let resp = await http.get(cleanUrl);
         if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
             resp = await http.get(cleanUrl);
@@ -585,41 +586,18 @@ const source = {
         const $ = parseHtml(resp.body);
         const container = $("article#chapter-article div.chapter-content, div.chapter-content, article#chapter-article, #chapter-article").first();
         if (!container) {
-            return "";
+            throw new Error(`Failed to load chapter container`);
         }
 
-        // Remove boilerplate, ads, navigation, notice elements
-        container.remove("script, style, ins, iframe, noscript, .ads, .ad, div[align='center'], div[id^='pf-'], div[id^='bg-ssp-'], div[class*='pubfuture'], div[id*='pubfuture'], .TPuhiHlg, .chapternav, .guide-message, .read-ads, .reader-ad-skip");
-
+        /* Paragraph selection */
         const pElements = container.select("p");
         if (pElements.length > 0) {
-            const paragraphs = [];
-            for (const p of pElements) {
-                const rawHtml = p.html();
-                let text = "";
-                if (rawHtml && /<br\s*[\/]?>/i.test(rawHtml)) {
-                    text = decodeHtmlEntities(
-                        rawHtml
-                            .replace(/\s*<br\s*[\/]?>\s*<br\s*[\/]?>\s*/gi, "\n\n")
-                            .replace(/\s*<br\s*[\/]?>\s*/gi, "\n")
-                            .replace(/<[^>]+>/g, "")
-                    ).trim();
-                } else {
-                    text = decodeHtmlEntities(p.text().trim());
-                }
-                if (!text) continue;
-                paragraphs.push(text);
-            }
-            if (paragraphs.length > 0) {
-                return paragraphs.map(p => `<p>${p}</p>`).join("");
-            }
+            const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
+                .filter(text => text.length > 0)
+                .map(p => `<p>${p}</p>`)
+                .join("");
+            return paragraphs;
         }
-
-        const rawHtml = container.html();
-        if (rawHtml) {
-            return cleanDescription(rawHtml);
-        }
-
-        return decodeHtmlEntities(container.text().trim());
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };

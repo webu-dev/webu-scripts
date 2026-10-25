@@ -4,7 +4,7 @@
 //@ts-check
 
 /**
- * Decodes standard HTML entities in text.
+ * Decodes standard and numeric HTML entities.
  * @param {string} str
  * @returns {string}
  */
@@ -15,15 +15,36 @@ function decodeHtmlEntities(str) {
         .replace(/&amp;/gi, "&")
         .replace(/&lt;/gi, "<")
         .replace(/&gt;/gi, ">")
-        .replace(/&quot;/gi, "\"")
-        .replace(/&#39;|&apos;/gi, "'")
-        .replace(/&rsquo;|&lsquo;/gi, "'")
-        .replace(/&rdquo;|&ldquo;/gi, "\"")
-        .replace(/&hellip;|…/gi, "...")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&apos;/gi, "'")
+        .replace(/&#039;/gi, "'")
+        .replace(/&#x27;/gi, "'")
+        .replace(/&lsquo;/gi, "‘")
+        .replace(/&rsquo;/gi, "’")
+        .replace(/&ldquo;/gi, "“")
+        .replace(/&rdquo;/gi, "”")
+        .replace(/&hellip;/gi, "...")
         .replace(/&mdash;/gi, "—")
         .replace(/&ndash;/gi, "–")
-        .replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-        .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)));
+        .replace(/&#(\d+);/g, (_, dec) => {
+            /* Convert number html code entities */
+            try {
+                const code = parseInt(dec, 10);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        })
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            /* Convert hex html code entities */
+            try {
+                const code = parseInt(hex, 16);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        });
 }
 
 /**
@@ -417,7 +438,10 @@ const source = {
         if (slug) {
             try {
                 const archiveUrl = `https://novelping.com/ajax/chapter-archive?novelId=${encodeURIComponent(slug)}`;
-                let archiveResp = await fetchWithRetry(archiveUrl, { "x-requested-with": "XMLHttpRequest" });
+                let archiveResp = await fetchWithRetry(archiveUrl, {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Referer": cleanUrl
+                });
                 if (archiveResp && archiveResp.status === 200 && archiveResp.body) {
                     const $archive = parseHtml(archiveResp.body);
                     let items = $archive("li[data-chapter-item] a, .chapter-archive-panel li a, .list-chapter li a, a[href*='/chapter-']");
@@ -466,7 +490,10 @@ const source = {
         if (chapters.length === 0 && slug) {
             try {
                 const optionUrl = `https://novelping.com/ajax/chapter-option?novelId=${encodeURIComponent(slug)}&currentChapterId=chapter-1`;
-                let optResp = await fetchWithRetry(optionUrl, { "x-requested-with": "XMLHttpRequest" });
+                let optResp = await fetchWithRetry(optionUrl, {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Referer": cleanUrl
+                });
                 if (optResp && optResp.status === 200 && optResp.body) {
                     const $opt = parseHtml(optResp.body);
                     const options = $opt("option");
@@ -528,101 +555,36 @@ const source = {
      * @returns {Promise<string>}
      */
     async getChapterText(chapterUrl) {
-        if (!chapterUrl || !chapterUrl.trim()) return "";
-        const url = toAbsoluteUrl(chapterUrl);
-        if (!url) return "";
+        /* Input validation */
+        if (!chapterUrl || typeof chapterUrl !== "string" || !chapterUrl.trim()) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
+        let cleanUrl = toAbsoluteUrl(chapterUrl.trim());
+        if (!cleanUrl) throw new Error(`Failed to load valid chapter url=${chapterUrl}`);
 
-        let resp = await fetchWithRetry(url);
+        /* Network request with retry and backoff on 429 is handled in HttpBridge */
+        let resp = await http.get(cleanUrl);
+        if ((!resp || resp.status !== 200) && (!resp || resp.status === 429 || resp.status >= 500)) {
+            resp = await http.get(cleanUrl);
+        }
         if (!resp || resp.status !== 200 || !resp.body) {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
 
+        /* DOM parsing */
         const $ = parseHtml(resp.body);
-        const content = $("#chr-content, .chr-c, .reading-content, #chapter-content").first();
-        let paragraphs = "";
-
-        if (content) {
-            // Clean ads, navigation, scripts, styles
-            content.remove(".js-ad-slot, script, style, ins, .chapternav, iframe, noscript, .ads, .ad, div[align='center'], div.hidden");
-
-            const pElements = content.select("p");
-            if (pElements.length > 0) {
-                const pTexts = [];
-                for (const p of pElements) {
-                    const html = p.html();
-                    let t;
-                    if (html && /<br\s*[\/]?>/i.test(html)) {
-                        t = html
-                            .replace(/\s*<br\s*[\/]?>\s*<br\s*[\/]?>\s*/gi, "\n\n")
-                            .replace(/\s*<br\s*[\/]?>\s*/gi, "\n")
-                            .replace(/<[^>]+>/g, "")
-                            .trim();
-                    } else {
-                        t = p.text().trim();
-                    }
-                    t = decodeHtmlEntities(t).trim();
-                    if (t.length > 0) {
-                        pTexts.push(t);
-                    }
-                }
-                paragraphs = pTexts.map(p => `<p>${p}</p>`).join("");
-            }
-
-            // Fallback if no <p> tags found or all empty
-            if (!paragraphs) {
-                const rawHtml = content.html();
-                if (rawHtml) {
-                    const withNewlines = rawHtml
-                        .replace(/\s*<br\s*[\/]?>\s*/gi, "\n\n")
-                        .replace(/<\/p>/gi, "\n\n")
-                        .replace(/<[^>]+>/g, "");
-                    paragraphs = withNewlines
-                        .split(/\n\s*\n/)
-                        .map(p => decodeHtmlEntities(p.trim()))
-                        .filter(t => t.length > 0)
-                        .join("\n\n");
-                } else {
-                    paragraphs = decodeHtmlEntities(content.text().trim());
-                }
-            }
+        const container = $("#chr-content, .chr-c, .reading-content, #chapter-content").first();
+        if (!container) {
+            throw new Error(`Failed to load chapter container`);
         }
 
-        // Strategy 2: Chapter Fragment AJAX Fallback if DOM content was empty
-        if (!paragraphs) {
-            const m = url.match(/\/book\/([^/?#]+)\/([^/?#]+)/i);
-            if (m) {
-                try {
-                    const fragUrl = `https://novelping.com/ajax/chapter-fragment?novel_id=${encodeURIComponent(m[1])}&chapter_id=${encodeURIComponent(m[2])}`;
-                    let fragResp = await fetchWithRetry(fragUrl, { "x-requested-with": "XMLHttpRequest" });
-                    if (fragResp && fragResp.status === 200 && fragResp.body) {
-                        const fragData = JSON.parse(fragResp.body);
-                        const html = fragData.chapter?.content_html || fragData.content_html || "";
-                        if (html) {
-                            const $frag = parseHtml(html);
-                            $frag.remove(".js-ad-slot, script, style, ins, iframe, noscript, .ads, .ad");
-                            const fragPs = $frag("p");
-                            if (fragPs.length > 0) {
-                                const fragTexts = [];
-                                for (const p of fragPs) {
-                                    const h = p.html();
-                                    let t = (h && /<br\s*[\/]?>/i.test(h))
-                                        ? h.replace(/\s*<br\s*[\/]?>\s*<br\s*[\/]?>\s*/gi, "\n\n").replace(/\s*<br\s*[\/]?>\s*/gi, "\n").replace(/<[^>]+>/g, "").trim()
-                                        : p.text().trim();
-                                    t = decodeHtmlEntities(t).trim();
-                                    if (t.length > 0) fragTexts.push(t);
-                                }
-                                paragraphs = fragTexts.join("\n\n");
-                            } else {
-                                paragraphs = decodeHtmlEntities($frag.text().trim());
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.warn("Failed to fetch chapter fragment: " + e.message);
-                }
-            }
+        /* Paragraph selection */
+        const pElements = container.select("p");
+        if (pElements.length > 0) {
+            const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
+                .filter(text => text.length > 0)
+                .map(p => `<p>${p}</p>`)
+                .join("");
+            return paragraphs;
         }
-
-        return paragraphs;
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };
