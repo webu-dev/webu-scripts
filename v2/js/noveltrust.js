@@ -513,7 +513,7 @@ const source = {
         if (slug) {
             try {
                 const ajaxUrl = `https://noveltrust.com/ajax/get-list-chapter?novel_id=${encodeURIComponent(slug)}`;
-                const ajaxResp = await fetchWithRetry(ajaxUrl);
+                const ajaxResp = await fetchWithRetry(ajaxUrl, { "X-Requested-With": "XMLHttpRequest", "Referer": cleanUrl });
                 if (ajaxResp && ajaxResp.status === 200 && ajaxResp.body) {
                     let data = null;
                     try {

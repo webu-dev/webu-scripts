@@ -71,6 +71,16 @@
             "hash": ""
         },
         {
+            "name": "Novel Phoenix",
+            "identifier": "novelphoenix.com",
+            "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@latest/v2/js/novelphoenix.js",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@main/icons/novelphoenix.png",
+            "lang": "en",
+            "versionCode": 1,
+            "versionLib": 1,
+            "hash": ""
+        },
+        {
             "name": "Novel Trust",
             "identifier": "noveltrust.com",
             "extensionUrl": "https://cdn.jsdelivr.net/gh/webu-dev/webu-scripts@latest/v2/js/noveltrust.js",

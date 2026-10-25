@@ -1,6 +1,46 @@
 /**
  * Source script for novelphoenix.com
  */
+
+function decodeHtmlEntities(str) {
+    if (!str || typeof str !== "string") return "";
+    return str
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&apos;/gi, "'")
+        .replace(/&#039;/gi, "'")
+        .replace(/&#x27;/gi, "'")
+        .replace(/&lsquo;/gi, "‘")
+        .replace(/&rsquo;/gi, "’")
+        .replace(/&ldquo;/gi, "“")
+        .replace(/&rdquo;/gi, "”")
+        .replace(/&hellip;/gi, "...")
+        .replace(/&mdash;/gi, "—")
+        .replace(/&ndash;/gi, "–")
+        .replace(/&#(\d+);/g, (_, dec) => {
+            /* convert number html code entities */
+            try {
+                const code = parseInt(dec, 10);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        })
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            /* convert hex html code entities */
+            try {
+                const code = parseInt(hex, 16);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        });
+}
+
 const source = {
     /**
      * Search novels matching a query string.
@@ -283,25 +323,20 @@ const source = {
         const $ = parseHtml(resp.body);
         const container = $("#chapter-container, .chapter-content, #chr-content").first();
         if (!container) {
-            return "";
+            throw new Error(`Failed to load chapter container`);
         }
-
-        // Remove boilerplate, ads, navigation, notice elements
-        container.remove(".nf-ads, .box-notification, .chapternav, .box-notice, .report-container, script, ins, style");
 
         const pElements = container.select("p");
         if (pElements.length > 0) {
-            const paragraphs = [];
-            for (const p of pElements) {
-                const text = p.text().trim();
-                // Filter out empty lines or notice paragraphs
-                if (!text) continue;
-                if (/If you find any errors \(non-standard content/i.test(text)) continue;
-                paragraphs.push(text);
-            }
-            return paragraphs.map(p => `<p>${p}</p>`).join("");
-        }
+            const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
+                .filter(text => text.length > 0)
+                .filter(text => !/If you find any errors \(non-standard content/i.test(text))
+                .map(p => `<p>${p}</p>`)
+                .join("");
 
-        return container.text().trim();
+            return paragraphs;
+        } else {
+            throw new Error(`Failed to load chapter paragraphs`);
+        }
     }
 };
