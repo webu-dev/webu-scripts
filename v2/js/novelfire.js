@@ -14,13 +14,36 @@ function decodeHtmlEntities(str) {
         .replace(/&amp;/gi, "&")
         .replace(/&lt;/gi, "<")
         .replace(/&gt;/gi, ">")
-        .replace(/&quot;/gi, "\"")
-        .replace(/&#39;|&apos;/gi, "'")
-        .replace(/&rsquo;|&lsquo;/gi, "'")
-        .replace(/&rdquo;|&ldquo;/gi, "\"")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&apos;/gi, "'")
+        .replace(/&#039;/gi, "'")
+        .replace(/&#x27;/gi, "'")
+        .replace(/&lsquo;/gi, "‘")
+        .replace(/&rsquo;/gi, "’")
+        .replace(/&ldquo;/gi, "“")
+        .replace(/&rdquo;/gi, "”")
         .replace(/&hellip;/gi, "...")
         .replace(/&mdash;/gi, "—")
-        .replace(/&ndash;/gi, "–");
+        .replace(/&ndash;/gi, "–")
+        .replace(/&#(\d+);/g, (_, dec) => {
+            /* convert number html code entities */
+            try {
+                const code = parseInt(dec, 10);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        })
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            /* convert hex html code entities */
+            try {
+                const code = parseInt(hex, 16);
+                return code ? String.fromCodePoint(code) : "";
+            } catch (_) {
+                return "";
+            }
+        });
 }
 
 /**
@@ -64,6 +87,89 @@ function normalizeChapterUrl(url, baseNovelUrl = "") {
         return `${baseNovelUrl}/${clean}`;
     }
     return `https://novelfire.net/${clean}`;
+}
+
+/**
+ * Resolves a relative or protocol-relative URL against a base URL.
+ * @param {string} relativeUrl
+ * @param {string} baseUrl
+ * @returns {string}
+ */
+function resolveUrl(relativeUrl, baseUrl) {
+    if (!relativeUrl || typeof relativeUrl !== "string") return "";
+    let clean = relativeUrl.trim();
+    if (clean.startsWith("//")) {
+        return `https:${clean}`;
+    }
+    if (clean.startsWith("http://") || clean.startsWith("https://")) {
+        return clean;
+    }
+    if (baseUrl) {
+        const originMatch = baseUrl.match(/^(https?:\/\/[^\/]+)/i);
+        const origin = originMatch ? originMatch[1] : "";
+        if (clean.startsWith("/")) {
+            return `${origin}${clean}`;
+        }
+        const basePath = baseUrl.replace(/\/[^\/]*$/, "/");
+        return `${basePath}${clean}`;
+    }
+    return clean;
+}
+
+/**
+ * Extracts a client-side redirect URL (window.location, location.replace, meta refresh) from HTML.
+ * @param {string} html
+ * @param {string} [baseUrl]
+ * @returns {string|null}
+ */
+function extractRedirectUrl(html, baseUrl = "") {
+    if (!html || typeof html !== "string") return null;
+
+    // 1. Check window.location.href / window.location / location.href / location.replace
+    const jsMatch = html.match(/(?:window\.)?location(?:\.href|\.replace)?\s*(?:=|\()\s*["']([^"']+)["']/i);
+    if (jsMatch && jsMatch[1]) {
+        let target = jsMatch[1].replace(/\\\//g, "/").replace(/\\(['"])/g, "$1").trim();
+        return resolveUrl(target, baseUrl);
+    }
+
+    // 2. Check <meta http-equiv="refresh" content="0;url=...">
+    const metaMatch = html.match(/<meta[^>]+http-equiv=["']?refresh["']?[^>]+content=["']?[0-9]+;\s*url=([^"'>\s]+)["']?/i);
+    if (metaMatch && metaMatch[1]) {
+        let target = metaMatch[1].replace(/\\\//g, "/").replace(/\\(['"])/g, "$1").trim();
+        return resolveUrl(target, baseUrl);
+    }
+
+    return null;
+}
+
+/**
+ * Safe HTTP GET with client-side redirect following.
+ * Note: Retry on 429 with backoff is handled natively in HttpBridge.
+ * @param {string} url
+ * @param {number} maxHops
+ * @returns {Promise<any>}
+ */
+async function fetchWithRedirect(url, maxHops = 3) {
+    let currentUrl = url;
+    let prevUrl = "";
+    let resp = null;
+
+    for (let hop = 0; hop <= maxHops; hop++) {
+        const headers = prevUrl ? { "Referer": prevUrl } : {};
+        resp = await http.get(currentUrl, headers);
+
+        if (resp && resp.status === 200 && resp.body) {
+            const redirectUrl = extractRedirectUrl(resp.body, currentUrl);
+            if (redirectUrl && redirectUrl !== currentUrl) {
+                prevUrl = currentUrl;
+                currentUrl = redirectUrl;
+                continue;
+            }
+        }
+        break;
+    }
+
+    return resp;
 }
 
 /**
@@ -441,50 +547,30 @@ const source = {
             return "";
         }
 
-        const cleanUrl = normalizeChapterUrl(chapterUrl);
-        if (!cleanUrl) {
-            return "";
-        }
-
-        const resp = await fetchWithRetry(cleanUrl);
+        /* Network request with client-side redirect following (retry on 429 handled in HttpBridge) */
+        const resp = await fetchWithRedirect(chapterUrl);
         if (!resp || resp.status !== 200 || !resp.body) {
             throw new Error(`Failed to load chapter page: HTTP ${resp ? resp.status : "unknown"}`);
         }
 
+        /* DOM parsing*/
         const $ = parseHtml(resp.body);
-        const container = $("#content, .reading-content, #chr-content").first();
+        const container = $("#chapter-container, .chapter-content, #chr-content, #content, .reading-content").first();
         if (!container) {
-            return "";
+            throw new Error(`Failed to load chapter container`);
         }
 
-        // Cleaning: remove .nf-ads, .adcash, h4, script, style, ins, .chapternav, .box-notification, .box-notice, .report-container
-        container.remove(".nf-ads, .adcash, h4, script, style, ins, .chapternav, .box-notification, .box-notice, .report-container");
-
+        /* Paragraph selection*/
         const pElements = container.select("p");
         if (pElements.length > 0) {
-            const paragraphs = [];
-            for (const p of pElements) {
-                const text = decodeHtmlEntities(p.text().trim());
-                if (!text) continue;
-                if (/If you find any errors|report chapter/i.test(text)) continue;
-                paragraphs.push(text);
-            }
-            if (paragraphs.length > 0) {
-                return paragraphs.map(p => `<p>${p}</p>`).join("");
-            }
+            const paragraphs = pElements.map(p => decodeHtmlEntities(p.text().trim()))
+                .filter(text => text.length > 0)
+                .filter(text => !/If you find any errors|report chapter/i.test(text))
+                .map(p => `<p>${p}</p>`)
+                .join("");
+            
+            return paragraphs;
         }
-
-        const raw = container.html();
-        if (raw && /<br\s*\/?>/i.test(raw)) {
-            return raw
-                .replace(/<br\s*\/?>/gi, "\n")
-                .replace(/<[^>]+>/g, "")
-                .split("\n")
-                .map(l => decodeHtmlEntities(l.trim()))
-                .filter(Boolean)
-                .join("\n\n");
-        }
-
-        return decodeHtmlEntities(container.text().trim());
+        throw new Error(`Failed to load chapter paragraphs`);
     }
 };
